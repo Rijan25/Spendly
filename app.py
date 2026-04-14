@@ -1,8 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, flash, redirect, render_template, request
 
-from database.db import get_db, init_db, seed_db, close_db
+from database.db import get_db, init_db, seed_db, close_db, create_user
 
 app = Flask(__name__)
+app.secret_key = "spendly-dev-secret-key-change-in-production"
 
 # Register database teardown
 app.teardown_appcontext(close_db)
@@ -22,8 +23,32 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        # Validate required fields
+        if not name or not email or not password:
+            flash("All fields are required", "error")
+            return render_template("register.html", error="All fields are required")
+
+        # Validate password length
+        if len(password) < 8:
+            flash("Password must be at least 8 characters", "error")
+            return render_template("register.html", error="Password must be at least 8 characters")
+
+        # Try to create user
+        try:
+            create_user(name, email, password)
+            flash("Account created successfully! Please log in.", "success")
+            return redirect("/login")
+        except ValueError as e:
+            flash(str(e), "error")
+            return render_template("register.html", error=str(e))
+
     return render_template("register.html")
 
 
