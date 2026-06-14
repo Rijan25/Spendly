@@ -77,7 +77,7 @@ def login():
     session.clear()
     session["user_id"]   = user["id"]
     session["user_name"] = user["name"]
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("profile"))
 
 
 # ------------------------------------------------------------------ #
@@ -100,14 +100,37 @@ def logout():
     return redirect(url_for("landing"))
 
 
-@app.route("/dashboard")
-def dashboard():
-    return "Dashboard — coming in Step 5"
-
-
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    user = {"name": "Demo User", "email": "demo@spendly.com", "member_since": "June 2026"}
+    stats = {"total_spent": 317.50, "transaction_count": 8, "top_category": "Bills"}
+    transactions = [
+        {"date": "2026-06-14", "description": "Groceries",        "category": "Food",          "amount": 22.00},
+        {"date": "2026-06-11", "description": "Clothes",          "category": "Shopping",      "amount": 65.00},
+        {"date": "2026-06-09", "description": "Movie ticket",     "category": "Entertainment", "amount": 15.00},
+        {"date": "2026-06-07", "description": "Pharmacy",         "category": "Health",        "amount": 30.00},
+        {"date": "2026-06-05", "description": "Electricity bill", "category": "Bills",         "amount": 120.00},
+    ]
+    categories = [
+        {"name": "Bills",         "amount": 120.00},
+        {"name": "Shopping",      "amount":  65.00},
+        {"name": "Transport",     "amount":  45.00},
+        {"name": "Health",        "amount":  30.00},
+        {"name": "Food",          "amount":  34.50},
+        {"name": "Entertainment", "amount":  15.00},
+        {"name": "Other",         "amount":   8.00},
+    ]
+    return render_template(
+        "profile.html",
+        user=user,
+        stats=stats,
+        transactions=transactions,
+        categories=categories,
+        max_amount=categories[0]["amount"],
+    )
 
 
 @app.route("/expenses/add")
